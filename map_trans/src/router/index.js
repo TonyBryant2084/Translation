@@ -10,14 +10,14 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomeView,
-    meta: { requiresAuth: true } // 需要登录才能访问
+    // meta: { requiresAuth: true } // 需要登录才能访问
   },
   //  关于页面（需要登录权限）
   {
     path: '/about',
     name: 'about',
     component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue'),
-    meta: { requiresAuth: true } // 需要登录才能访问
+    // meta: { requiresAuth: true } // 需要登录才能访问
   },
   //  登录页面（懒加载）
   {
