@@ -38,10 +38,18 @@
           <!-- 表单 -->
           <el-form :inline="true" :model="formInline" class="search-form">
             <el-form-item label="姓名">
-              <el-input v-model="formInline.user" placeholder="请输入姓名" clearable />
+              <el-input
+                v-model="formInline.user"
+                placeholder="请输入姓名"
+                clearable
+              />
             </el-form-item>
             <el-form-item label="性别">
-              <el-select v-model="formInline.region" placeholder="请选择性别" clearable>
+              <el-select
+                v-model="formInline.gender"
+                placeholder="请选择性别"
+                clearable
+              >
                 <el-option label="男" value="male" />
                 <el-option label="女" value="female" />
               </el-select>
@@ -61,11 +69,34 @@
           </el-form>
 
           <!-- 表格 -->
-          <el-table :data="tableData" border stripe class="data-table">
-            <el-table-column prop="name" label="姓名" width="120" />
-            <el-table-column prop="gender" label="性别" width="120" />
-            <el-table-column prop="date" label="日期" width="140" />
-            <el-table-column prop="address" label="地址" />
+          <el-table :data="pagedData" border stripe class="data-table">
+            <el-table-column prop="username" label="用户名" width="120" />
+            <el-table-column prop="user_pic" label="图片" width="120">
+              <template slot-scope="scope">
+                <img
+                  v-if="scope.row.user_pic"
+                  :src="scope.row.user_pic"
+                  alt="用户图片"
+                  style="width: 50px; height: 50px; border-radius: 50%"
+                />
+                <span v-else>无图片</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="nickname" label="昵称" width="120">
+              <template slot-scope="scope">
+                {{ scope.row.nickname || "无昵称" }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="gender" label="性别" width="120">
+              <template slot-scope="scope">
+                {{ scope.row.gender || "未知" }}
+              </template>
+            </el-table-column>
+            <el-table-column prop="email" label="邮箱">
+              <template slot-scope="scope">
+                {{ scope.row.email || "无邮箱" }}
+              </template>
+            </el-table-column>
           </el-table>
 
           <!-- 分页 -->
@@ -73,8 +104,8 @@
             class="pagination"
             background
             layout="sizes, prev, pager, next, jumper"
-            :total="1000"
-            :page-size="10"
+            :total="total"
+            :page-size="pageSize"
             @size-change="handleSizeChange"
             @current-change="handleCurrentChange"
           />
@@ -85,23 +116,69 @@
 </template>
 
 <script>
-// import axios from 'axios';
+import axios from "@/api/axios";
 
 export default {
   data() {
     return {
-      tableData: [], // 表格数据
+      allData: [], // 所有的数据
+      tableData: [], // 表格显示的数据
       formInline: {
-        user: '', // 姓名
-        region: '', // 性别
+        user: "", // 姓名
+        gender: "", // 性别
         date: [], // 日期范围
       },
+      total: 0, // 总条数
+      pageSize: 5, // 每页条数
+      currentPage: 1, // 当前页数
     };
   },
+  computed: {
+    // 计算分页数据
+    pagedData() {
+      const start = (this.currentPage - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      return this.allData.slice(start, end); // 获取当前页的数据
+    },
+  },
   methods: {
+    // 查询方法
+    onSubmit() {
+      // 这里可以添加查询逻辑
+      console.log("查询条件:", this.formInline);
+    },
+    // 分页大小改变
+    handleSizeChange(size) {
+      this.pageSize = size;
+      this.fetchData();
+    },
+    // 当前页改变
+    handleCurrentChange(page) {
+      this.currentPage = page;
+      this.fetchData(page);
+    },
+    // 获取数据
+    async fetchData() {
+      try {
+        const response = await axios.get("http://127.0.0.1:80/my/show", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        if (response.data.status === 0) {
+          this.allData = response.data.data; // 存储所有数据
+          this.total = this.allData.length; // 总条数
+          this.tableData = this.pagedData; // 获取当前页的数据
+        } else {
+          console.error("获取数据失败:", response.data.msg);
+        }
+      } catch (error) {
+        console.error("请求失败:", error);
+      }
+    },
   },
   async mounted() {
-    
+    this.fetchData();
   },
 };
 </script>
